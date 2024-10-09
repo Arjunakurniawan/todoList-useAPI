@@ -12,6 +12,13 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
+
+    <style>
+      .btn-outline-secondary:hover {
+        color: #6c757d;
+        background-color: #fff;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
@@ -31,19 +38,24 @@
       function TodoListApp() {
         // using useState is more practical and faster
         const [names, setnames] = React.useState("");
-        const [phones, setphones] = React.useState(null);
-        const [emails, setemails] = React.useState(null);
+        const [phones, setphones] = React.useState("");
+        const [emails, setemails] = React.useState("");
         const [contacts, setcontacts] = React.useState([]);
         const [editIndex, seteditIndex] = React.useState(null);
         const [showContactList, setshowContactList] = React.useState(false);
         const [SearchContacts, setSearchContacts] = React.useState("");
+        const [sortType, setsortType] = React.useState("Asc");
 
         React.useEffect(() => {
+          fetchAPI();
+          setshowContactList(true);
+        }, []);
+
+        async function fetchAPI() {
           fetch("https://jsonplaceholder.typicode.com/users")
             .then((response) => response.json())
             .then((data) => setcontacts(data));
-            setshowContactList(true)
-        }, []);
+        }
 
         // useRef replace when we do DOM in javascript
         const NameInputRef = React.useRef(null);
@@ -57,6 +69,19 @@
             contact.phone.includes(SearchContacts) ||
             contact.email.includes(SearchContacts.toLowerCase())
         );
+
+        function handleSorted(type) {
+          setsortType(type);
+
+          const sortContacts = [...contacts].sort((a, b) => {
+            if (type === "Asc") {
+              return a.name.localeCompare(b.name);
+            } else {
+              return b.name.localeCompare(a.name);
+            }
+          });
+          setcontacts(sortContacts);
+        }
 
         function onChangeName(e) {
           setnames(e.target.value);
@@ -140,7 +165,7 @@
                 </div>
                 <div class="col-md">
                   <input
-                    type="number"
+                    type="text"
                     class="form-control mb -2"
                     placeholder="Telp"
                     onChange={onChangePhone}
@@ -169,7 +194,35 @@
               {showContactList && (
                 <>
                   <h3 class="text-center mt-5">Contact List</h3>
-                  <table class="table table-hover mt-5">
+                  <div class="dropdown-center d-md-flex justify-content-md-end">
+                    <button
+                      class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      Sort: {sortType}
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a
+                          class="dropdown-item"
+                          onClick={() => handleSorted("Asc")}
+                        >
+                          Asc
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          class="dropdown-item"
+                          onClick={() => handleSorted("Desc")}
+                        >
+                          Desc
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                  <table class="table table-hover mt-2">
                     <thead>
                       <tr>
                         <th scope="col">
