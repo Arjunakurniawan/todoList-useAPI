@@ -46,7 +46,7 @@
         const [SearchContacts, setSearchContacts] = React.useState("");
         const [sortType, setsortType] = React.useState("Default");
         const [currentPage, setcurrentPage] = React.useState(1);
-        const [itemsPerPage, setitemsPerPage] = React.useState(10);
+        const [itemsPerPage, setitemsPerPage] = React.useState(5);
 
         React.useEffect(() => {
           fetchAPI();
@@ -63,6 +63,9 @@
         const PhoneInputRef = React.useRef(null);
         const EmailInputRef = React.useRef(null);
 
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
         const filterContacts = contacts.filter(
           (contact) =>
             contact.name.toLowerCase().includes(SearchContacts.toLowerCase()) ||
@@ -70,18 +73,17 @@
             contact.email.includes(SearchContacts.toLowerCase())
         );
 
-        function handlePageChange(numberPage) {
-          setcurrentPage(numberPage);
-        }
-
-        const indexOfLastItem = currentPage * itemsPerPage;
-        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
         const currentContacts = filterContacts.slice(
           indexOfFirstItem,
           indexOfLastItem
         );
 
-        const totalPages = Math.ceil(contacts.length / itemsPerPage);
+        const totalPages = Math.ceil(filterContacts.length / itemsPerPage);
+
+        function handlePageChange(numberPage) {
+          setcurrentPage(numberPage);
+          console.log(numberPage);
+        }
 
         function handleSorted(type) {
           setsortType(type);
@@ -254,7 +256,7 @@
                     </thead>
 
                     <tbody>
-                      {filterContacts.map((contact, index) => (
+                      {currentContacts.map((contact, index) => (
                         <tr key={index}>
                           <td>{contact.name}</td>
                           <td>{contact.phone}</td>
@@ -303,7 +305,9 @@
                         >
                           <a
                             class="page-link"
-                            onClick={() => handlePageChange(index + 1)}
+                            onClick={(e) => {
+                              handlePageChange(index + 1);
+                            }}
                           >
                             {index + 1}
                           </a>
@@ -318,7 +322,10 @@
                           class="page-link"
                           href="#"
                           aria-label="Next"
-                          onClick={() => handlePageChange(currentPage + 1)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(currentPage + 1);
+                          }}
                         >
                           <span aria-hidden="true">&raquo;</span>
                         </a>
