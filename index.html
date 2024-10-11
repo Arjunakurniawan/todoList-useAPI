@@ -45,11 +45,13 @@
         const [showContactList, setshowContactList] = React.useState(false);
         const [SearchContacts, setSearchContacts] = React.useState("");
         const [sortType, setsortType] = React.useState("Default");
+        const [currentPage, setcurrentPage] = React.useState(1);
+        const [itemsPerPage, setitemsPerPage] = React.useState(10);
 
         React.useEffect(() => {
           fetchAPI();
           setshowContactList(true);
-        }, []);
+        }, [currentPage]);
 
         async function fetchAPI() {
           fetch("https://jsonplaceholder.typicode.com/users")
@@ -57,18 +59,29 @@
             .then((data) => setcontacts(data));
         }
 
-        // useRef replace when we do DOM in javascript
         const NameInputRef = React.useRef(null);
         const PhoneInputRef = React.useRef(null);
         const EmailInputRef = React.useRef(null);
 
-        // handle search
         const filterContacts = contacts.filter(
           (contact) =>
             contact.name.toLowerCase().includes(SearchContacts.toLowerCase()) ||
             contact.phone.includes(SearchContacts) ||
             contact.email.includes(SearchContacts.toLowerCase())
         );
+
+        function handlePageChange(numberPage) {
+          setcurrentPage(numberPage);
+        }
+
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const currentContacts = filterContacts.slice(
+          indexOfFirstItem,
+          indexOfLastItem
+        );
+
+        const totalPages = Math.ceil(contacts.length / itemsPerPage);
 
         function handleSorted(type) {
           setsortType(type);
@@ -112,8 +125,10 @@
             setcontacts(editContacts);
             seteditIndex(null);
           } else {
-            const newContact = { name: name, phone: phone, email: email };
-            const updateContacts = [...contacts, newContact];
+            const updateContacts = [
+              ...contacts,
+              { name: name, phone: phone, email: email },
+            ];
             setcontacts(updateContacts);
           }
         }
@@ -266,28 +281,45 @@
                   </table>
                   <nav aria-label="Page navigation example">
                     <ul class="pagination d-flex justify-content-end">
-                      <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
+                      <li
+                        class={`page-item ${
+                          currentPage === 1 ? "disabled" : ""
+                        }`}
+                      >
+                        <a
+                          class="page-link"
+                          aria-label="Previous"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                        >
                           <span aria-hidden="true">&laquo;</span>
                         </a>
                       </li>
-                      <li class="page-item">
-                        <a class="page-link" href="#">
-                          1
-                        </a>
-                      </li>
-                      <li class="page-item">
-                        <a class="page-link" href="#">
-                          2
-                        </a>
-                      </li>
-                      <li class="page-item">
-                        <a class="page-link" href="#">
-                          3
-                        </a>
-                      </li>
-                      <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
+                      {[...Array(totalPages)].map((_, index) => (
+                        <li
+                          key={index}
+                          class={`page-item ${
+                            currentPage === index + 1 ? "active" : ""
+                          }`}
+                        >
+                          <a
+                            class="page-link"
+                            onClick={() => handlePageChange(index + 1)}
+                          >
+                            {index + 1}
+                          </a>
+                        </li>
+                      ))}
+                      <li
+                        class={`page-item ${
+                          currentPage === totalPages ? "disabled" : ""
+                        }`}
+                      >
+                        <a
+                          class="page-link"
+                          href="#"
+                          aria-label="Next"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                        >
                           <span aria-hidden="true">&raquo;</span>
                         </a>
                       </li>
