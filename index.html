@@ -37,27 +37,35 @@
 
       function TodoListApp() {
         // using useState is more practical and faster
-        const [names, setnames] = React.useState("");
-        const [phones, setphones] = React.useState("");
-        const [emails, setemails] = React.useState("");
-        const [contacts, setcontacts] = React.useState([]);
-        const [editIndex, seteditIndex] = React.useState(null);
-        const [showContactList, setshowContactList] = React.useState(false);
-        const [SearchContacts, setSearchContacts] = React.useState("");
-        const [sortType, setsortType] = React.useState("Default");
-        const [currentPage, setcurrentPage] = React.useState(1);
-        const [itemsPerPage, setitemsPerPage] = React.useState(5);
+        const [names, setNames] = React.useState("");
+        const [phones, setPhones] = React.useState("");
+        const [emails, setEmails] = React.useState("");
+        const [contacts, setContacts] = React.useState([]);
+        const [searchContacts, setSearchContacts] = React.useState("");
+        const [editIndex, setEditIndex] = React.useState(null);
+        const [sortType, setSortType] = React.useState("Default");
+        const [currentPage, setCurrentPage] = React.useState(1);
+        const [itemsPerPage, setItemsPerPage] = React.useState(7);
+
+        // const [angka1, setAngka1] = useState(0)
+        // const [angka2, setAngka2] = useState(0)
+        // const hasil = angka1 + angka2;
+
+        // onChangeAngka1 = () => {
+        //   setAngka1()
+
+        //   setHasil(angka1 + angka2)
+        // }
 
         React.useEffect(() => {
-          fetchAPI();
-          setshowContactList(true);
-        }, [currentPage]);
-
-        async function fetchAPI() {
           fetch("https://jsonplaceholder.typicode.com/users")
             .then((response) => response.json())
-            .then((data) => setcontacts(data));
-        }
+            .then((data) => setContacts(data));
+        }, [currentPage]);
+
+        React.useEffect(() => {
+          setCurrentPage(1);
+        }, []);
 
         const NameInputRef = React.useRef(null);
         const PhoneInputRef = React.useRef(null);
@@ -68,12 +76,20 @@
 
         const filterContacts = contacts.filter(
           (contact) =>
-            contact.name.toLowerCase().includes(SearchContacts.toLowerCase()) ||
-            contact.phone.includes(SearchContacts) ||
-            contact.email.includes(SearchContacts.toLowerCase())
+            contact.name.toLowerCase().includes(searchContacts.toLowerCase()) ||
+            contact.phone.includes(searchContacts) ||
+            contact.email.includes(searchContacts.toLowerCase())
         );
 
-        const currentContacts = filterContacts.slice(
+        const sortContacts = [...filterContacts].sort((a, b) => {
+          if (sortType === "Asc") {
+            return a.name.localeCompare(b.name);
+          } else {
+            return b.name.localeCompare(a.name);
+          }
+        });
+
+        const currentContacts = sortContacts.slice(
           indexOfFirstItem,
           indexOfLastItem
         );
@@ -81,80 +97,21 @@
         const totalPages = Math.ceil(filterContacts.length / itemsPerPage);
 
         function handlePageChange(numberPage) {
-          setcurrentPage(numberPage);
-          console.log(numberPage);
+          setCurrentPage(numberPage);
         }
 
         function handleSorted(type) {
-          setsortType(type);
-
-          const sortContacts = [...contacts].sort((a, b) => {
-            if (type === "Asc") {
-              return a.name.localeCompare(b.name);
-            } else {
-              return b.name.localeCompare(a.name);
-            }
-          });
-          setcontacts(sortContacts);
-        }
-
-        function onChangeName(e) {
-          setnames(e.target.value);
-        }
-
-        function onChangePhone(e) {
-          setphones(e.target.value);
-        }
-
-        function onChangeEmail(e) {
-          setemails(e.target.value);
+          setSortType(type);
         }
 
         function onSearchContacts(e) {
           setSearchContacts(e.target.value);
         }
 
-        function RenderUI() {
-          setshowContactList(true);
-          if (!name || !phone || !email) {
-            alert("harap isi bidang ini");
-          } else if (editIndex !== null) {
-            const editContacts = contacts.map((contact, i) =>
-              i === editIndex
-                ? { name: name, phone: phone, email: emails }
-                : contact
-            );
-            setcontacts(editContacts);
-            seteditIndex(null);
-          } else {
-            const updateContacts = [
-              ...contacts,
-              { name: name, phone: phone, email: email },
-            ];
-            setcontacts(updateContacts);
-          }
-        }
-
         function OnClickButton() {
-          RenderUI();
-          setnames("");
-          setphones("");
-          setemails("");
-        }
-
-        function OnClickContact(index) {
-          const UpdateContacts = contacts.filter((_, i) => i !== index);
-          setcontacts(UpdateContacts);
-        }
-
-        function onEditClick(index) {
-          const contactToEdit = contacts[index];
-          setnames(contactToEdit.name);
-          setphones(contactToEdit.phone);
-          setemails(contactToEdit.email);
-          seteditIndex(index);
-
-          NameInputRef.current.focus();
+          setNames("");
+          setPhones("");
+          setEmails("");
         }
 
         return (
@@ -166,174 +123,113 @@
                 type="text"
                 class="form-control mb-3 w-100"
                 placeholder="Search..."
-                value={SearchContacts}
+                value={searchContacts}
                 onChange={onSearchContacts}
               />
-              <div class="row">
-                <div class="col-md">
-                  <input
-                    type="text"
-                    class="form-control mb-2"
-                    placeholder="Name"
-                    onChange={onChangeName}
-                    value={names}
-                    ref={NameInputRef}
-                  />
-                </div>
-                <div class="col-md">
-                  <input
-                    type="text"
-                    class="form-control mb -2"
-                    placeholder="Telp"
-                    onChange={onChangePhone}
-                    value={phones}
-                    ref={PhoneInputRef}
-                  />
-                </div>
-                <div class="col-md">
-                  <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Email"
-                    onChange={onChangeEmail}
-                    value={emails}
-                    ref={EmailInputRef}
-                  />
-                </div>
-                <div class="col-md">
-                  <button class="btn btn-primary w-100" onClick={OnClickButton}>
-                    <i class="bi bi-plus"></i>
-                    {editIndex !== null ? "Save" : "Add"}
-                  </button>
-                </div>
-              </div>
 
-              {showContactList && (
-                <>
-                  <h3 class="text-center mt-5">Contact List</h3>
-                  <div class="dropdown-center d-md-flex justify-content-md-end">
-                    <button
-                      class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
+              <h3 class="text-center mt-5">Contact List</h3>
+              <div class="dropdown-center d-md-flex justify-content-md-end">
+                <button
+                  class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  Sort: {sortType}
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      onClick={() => handleSorted("Asc")}
                     >
-                      Sort: {sortType}
-                    </button>
-                    <ul class="dropdown-menu">
-                      <li>
-                        <a
-                          class="dropdown-item"
-                          onClick={() => handleSorted("Asc")}
-                        >
-                          Asc
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          class="dropdown-item"
-                          onClick={() => handleSorted("Desc")}
-                        >
-                          Desc
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <table class="table table-hover mt-2">
-                    <thead>
-                      <tr>
-                        <th scope="col">
-                          <i class="bi bi-person-fill mr-2"></i>Name
-                        </th>
-                        <th scope="col">
-                          <i class="bi bi-telephone-fill mr-2"></i>Telp
-                        </th>
-                        <th scope="col">
-                          <i class="bi bi-envelope-fill mr-2"></i>Email
-                        </th>
-                        <th scope="col">Action</th>
-                      </tr>
-                    </thead>
+                      Asc
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      onClick={() => handleSorted("Desc")}
+                    >
+                      Desc
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <table class="table table-hover mt-2">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                      <i class="bi bi-person-fill mr-2"></i>Name
+                    </th>
+                    <th scope="col">
+                      <i class="bi bi-telephone-fill mr-2"></i>Telp
+                    </th>
+                    <th scope="col">
+                      <i class="bi bi-envelope-fill mr-2"></i>Email
+                    </th>
+                  </tr>
+                </thead>
 
-                    <tbody>
-                      {currentContacts.map((contact, index) => (
-                        <tr key={index}>
-                          <td>{contact.name}</td>
-                          <td>{contact.phone}</td>
-                          <td>{contact.email}</td>
-                          <td>
-                            <button
-                              class="btn btn-primary btn-sm mr-2"
-                              onClick={() => onEditClick(index)}
-                            >
-                              <i class="bi bi-pencil-square pr-1"></i>
-                              Edit
-                            </button>
-                            <button
-                              class="btn btn-danger btn-sm"
-                              onClick={() => OnClickContact(index)}
-                            >
-                              <i class="bi bi-trash-fill pr-1"></i>
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <nav aria-label="Page navigation example">
-                    <ul class="pagination d-flex justify-content-end">
-                      <li
-                        class={`page-item ${
-                          currentPage === 1 ? "disabled" : ""
-                        }`}
+                <tbody>
+                  {currentContacts.map((contact, index) => (
+                    <tr key={index}>
+                      <td>{contact.name}</td>
+                      <td>{contact.phone}</td>
+                      <td>{contact.email}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <nav aria-label="Page navigation example">
+                <ul class="pagination d-flex justify-content-end">
+                  <li
+                    class={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                  >
+                    <a
+                      class="page-link"
+                      aria-label="Previous"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+                  {[...Array(totalPages)].map((_, index) => (
+                    <li
+                      key={index}
+                      class={`page-item ${
+                        currentPage === index + 1 ? "active" : ""
+                      }`}
+                    >
+                      <a
+                        class="page-link"
+                        onClick={(e) => {
+                          handlePageChange(index + 1);
+                        }}
                       >
-                        <a
-                          class="page-link"
-                          aria-label="Previous"
-                          onClick={() => handlePageChange(currentPage - 1)}
-                        >
-                          <span aria-hidden="true">&laquo;</span>
-                        </a>
-                      </li>
-                      {[...Array(totalPages)].map((_, index) => (
-                        <li
-                          key={index}
-                          class={`page-item ${
-                            currentPage === index + 1 ? "active" : ""
-                          }`}
-                        >
-                          <a
-                            class="page-link"
-                            onClick={(e) => {
-                              handlePageChange(index + 1);
-                            }}
-                          >
-                            {index + 1}
-                          </a>
-                        </li>
-                      ))}
-                      <li
-                        class={`page-item ${
-                          currentPage === totalPages ? "disabled" : ""
-                        }`}
-                      >
-                        <a
-                          class="page-link"
-                          href="#"
-                          aria-label="Next"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handlePageChange(currentPage + 1);
-                          }}
-                        >
-                          <span aria-hidden="true">&raquo;</span>
-                        </a>
-                      </li>
-                    </ul>
-                  </nav>
-                </>
-              )}
+                        {index + 1}
+                      </a>
+                    </li>
+                  ))}
+                  <li
+                    class={`page-item ${
+                      currentPage === totalPages ? "disabled" : ""
+                    }`}
+                  >
+                    <a
+                      class="page-link"
+                      href="#"
+                      aria-label="Next"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(currentPage + 1);
+                      }}
+                    >
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </>
         );
