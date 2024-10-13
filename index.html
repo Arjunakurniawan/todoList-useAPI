@@ -65,14 +65,11 @@
 
         React.useEffect(() => {
           setCurrentPage(1);
-        }, []);
+        }, [sortType]);
 
         const NameInputRef = React.useRef(null);
         const PhoneInputRef = React.useRef(null);
         const EmailInputRef = React.useRef(null);
-
-        const indexOfLastItem = currentPage * itemsPerPage;
-        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
         const filterContacts = contacts.filter(
           (contact) =>
@@ -82,13 +79,15 @@
         );
 
         const sortContacts = [...filterContacts].sort((a, b) => {
-          if (sortType === "Asc") {
+          if (sortType === "Desc") {
             return a.name.localeCompare(b.name);
           } else {
             return b.name.localeCompare(a.name);
           }
         });
 
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
         const currentContacts = sortContacts.slice(
           indexOfFirstItem,
           indexOfLastItem
@@ -106,12 +105,7 @@
 
         function onSearchContacts(e) {
           setSearchContacts(e.target.value);
-        }
-
-        function OnClickButton() {
-          setNames("");
-          setPhones("");
-          setEmails("");
+          setCurrentPage(1)
         }
 
         return (
@@ -160,6 +154,9 @@
                 <thead>
                   <tr>
                     <th scope="col">
+                      <i class="bi bi-person-fill mr-2"></i>no
+                    </th>
+                    <th scope="col">
                       <i class="bi bi-person-fill mr-2"></i>Name
                     </th>
                     <th scope="col">
@@ -174,6 +171,7 @@
                 <tbody>
                   {currentContacts.map((contact, index) => (
                     <tr key={index}>
+                      <td>{index + 1 +(currentPage - 1) * itemsPerPage}</td>
                       <td>{contact.name}</td>
                       <td>{contact.phone}</td>
                       <td>{contact.email}</td>
